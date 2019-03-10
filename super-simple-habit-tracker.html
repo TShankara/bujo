@@ -1,0 +1,390 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+
+    <title>Bullet Journal Simple Habit Tracker</title>
+    <meta name="description" content="Super Simple Habit Tracker">
+    <meta name="author" content="Shankara">
+
+
+<!--
+    This is here to change default values.
+-->
+    <script type="text/javascript">
+        var default_title = "Habitudes conditionnement physique";
+        var default_habits = `
+CaP:Course à pied:135
+Yga:Ashtanga yoga:246
+Cal:Exercices poids du corps:12345
+Pra:Pranayama:123456
+`;
+        var str_comment = "Commentaire";
+        var todo_character = ".";
+        var days = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+        var str_cant_parse_date_and_title = "Impossible de détecter la date et le titre."
+    </script>
+
+    <style type="text/css">
+        :root {
+            --foreground-color: #2f3945;
+            --background-color: white;
+            --highlight-color: #77a9c5;
+
+            --border-color: #e6e6e6;
+            --border-contrast-color: white;
+
+            --font-sans-serif: "Avenir Next";
+            --font-monospace: "Lucida Console", Monaco, monospace;
+
+            font-family: var(--font-sans-serif);
+            font-size: 16px;
+            color: var(--foreground-color);
+            background-color: var(--background-color);
+        };
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: red;
+        }
+
+        #elm_edito {
+            border-bottom: 1px solid var(--border-color);
+            width: 100%;
+            margin: 0;
+            padding-top: 1rem;
+            padding-bottom: 1rem;  
+        }
+
+        #elm_edito div {
+            width: 80%;
+            margin: 1rem auto;
+        }
+
+        #elm_main {
+            width: 80%;
+            margin: 1rem auto;
+        }
+
+        #elm_habits_configuration {
+            margin-top: 1rem;
+            margin-bottom: 1rem;             
+        }
+
+        #elm_bujo {
+            display: block;
+            white-space: pre;
+            margin: 1em 0;
+
+            font-family: var(--font-monospace);
+            border: 1px solid var(--border-contrast-color);
+            border-top: 1px solid var(--border-color);
+        }
+
+        #elm_bujo:hover {
+            border: 1px solid var(--border-color) !important;
+        }
+
+        .italic {
+            font-style: italic;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        .right {
+            float: right;
+            margin-right: 0;
+        }
+
+        :visited {
+            color: inherit;
+        }
+
+        .tiny {
+            font-size: 0.8rem;
+        }
+
+        a {
+            text-decoration: none;
+            font-weight: bold;
+            font-style: italic;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+       [contenteditable] {
+            padding: 0.2rem;
+            font-size: 0.8rem;  
+            border: 1px dashed var(--border-color) !important;
+        }
+
+        [contenteditable]:focus {
+            outline: 0px solid transparent;
+        }
+
+        button {
+            font-family: inherit;
+            font-size: inherit;
+            border: none;
+            color: inherit;
+            background-color: inherit;
+        }
+        button:hover {
+            font-weight: bold;
+        }
+
+        input {
+            font-family: inherit;
+            font-size: inherit;
+            border: 1px solid var(--border-color);
+            color: inherit;
+            background-color: inherit;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 140px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 150%;
+            left: 50%;
+            margin-left: -75px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+    </style>
+
+    <script type="application/javascript">
+
+        function getHabits(content)
+        {
+            let habits = [];
+
+            content.replace(/(\w+):\s*(.*?)\s*:\s*(\d+)/g, function($0, $1, $2, $3)
+            {
+                habits.push([$1, $2, $3.split("").map(Number)]);
+            });
+
+            return habits;
+        }
+
+        function appendDay(date, habits)
+        {
+            let output = "";
+            let date_day = days[date.getDay()];
+
+            let date_number = date.getDate();
+            date_number = (date_number > 9) ? date_number : "0" + date_number;
+
+            /* Generate the Bujo */
+            output += date_number + " ";
+            output += date_day + "  ";
+
+            /* Determine is habit has to be done or not. */
+            for (let i = 0 ; i < habits.length ; i++)
+            {
+                let habit_frequency = habits[i][2].replace(7, 0);
+
+                if (habit_frequency.includes(date.getDay()))
+                {
+                    output += " " + todo_character + " ";
+                }
+                else
+                {
+                    output += "   ";
+                }
+                output += " ";
+            }
+
+            /* Entry place for comment. */
+            output += " ";
+
+            output += "\n";
+
+            /* End of the week? */
+            if (date.getDay() == 0 && 
+                document.getElementById("elm_separate_weeks").checked == true)
+            {
+                output += "\n";
+            }
+
+            return output;
+        }
+
+        function generateBujo()
+        {
+            let output = "";
+            let content = document.getElementById("elm_bujo").innerHTML;
+
+            /* Print title */
+            try
+            {
+                var date_and_title = content.split("\n")[0];
+                var match = /(\d+)\s+(\d+)\s*:(.*)/.exec(date_and_title);
+
+                var title = match[3];
+                var month = Number(match[2]);
+                var year = Number(match[1]);               
+            }
+            catch(err)
+            {
+                alert(str_cant_parse_date_and_title);
+                return;
+            }
+
+
+            /* Get habit list */
+            let habits = getHabits(content);
+
+            output += date_and_title;
+            output += "\n\n";
+
+            /* Append habits */
+            for (let i = 0; i < habits.length; i++)
+            {
+                habits[i][2] = habits[i][2].join("");
+                output += habits[i].join(":") + "\n";
+            }
+            output += "\n";
+
+
+            /* Append habits headers */
+            output += "      ";
+            for (let i = 0; i < habits.length; i++)
+            {
+                output += habits[i][0] + " ";
+            }
+            output += " " + str_comment;
+            output += "\n";
+
+            /* Generate the Bujo */
+            let days = new Date(year, month, 0).getDate();
+            for (let i = 1 ; i <= days ; i++)
+            {
+                output += appendDay(new Date(year, month-1, i), habits);
+            }  
+
+            elm_bujo.innerHTML = output;
+
+            return;
+        }
+
+        /* From https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f */
+        const copyToClipboard = str => {
+          const el = document.createElement('textarea');  // Create a <textarea> element
+          el.value = str;                                 // Set its value to the string that you want copied
+          el.setAttribute('readonly', '');                // Make it readonly to be tamper-proof
+          el.style.position = 'absolute';                 
+          el.style.left = '-9999px';                      // Move outside the screen to make it invisible
+          document.body.appendChild(el);                  // Append the <textarea> element to the HTML document
+          const selected =            
+            document.getSelection().rangeCount > 0        // Check if there is any content selected previously
+              ? document.getSelection().getRangeAt(0)     // Store selection if found
+              : false;                                    // Mark as false to know no selection existed before
+          el.select();                                    // Select the <textarea> content
+          document.execCommand('copy');                   // Copy - only works as a result of a user action (e.g. click events)
+          document.body.removeChild(el);                  // Remove the <textarea> element
+          if (selected) {                                 // If a selection existed before copying
+            document.getSelection().removeAllRanges();    // Unselect everything on the HTML document
+            document.getSelection().addRange(selected);   // Restore the original selection
+          }
+        };
+
+        function bujoToClipboard()
+        {
+            let elm_bujo = document.getElementById("elm_bujo");
+            copyToClipboard(elm_bujo.innerHTML);
+            
+        }
+
+        window.onload = function()
+        {
+            /* Prevent formatted copy/paste */
+            let elm_bujo = document.getElementById("elm_bujo");
+            elm_bujo.addEventListener("paste", function(e) {
+                e.preventDefault();
+                var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                document.execCommand("insertHTML", false, text);
+            });  
+
+            /* Fill default values */
+            let output = "";
+            output += new Date().getFullYear();
+            output += " ";
+            let month = (Number(new Date().getMonth())+1).toString();
+            month = (month > 9) ? month : "0" + month;
+            output += month;
+            output += ": ";
+            output += default_title;
+            output += "\n";
+            output += default_habits;
+            elm_bujo.innerHTML = output;
+        }
+    </script>
+    
+</head>
+
+<body>
+    <div id="elm_edito">
+        <div>
+            Ceci est un traqueur d'habitudes directement inspiré de la vidéo <a href="https://www.youtube.com/watch?v=K3KfPJRKPFw">Super Simple Habit Tracker</a> du créateur du <a href="https://www.youtube.com/channel/UCt3B6rUXb__X2eMyY7jzgIg">Bullet Journal</a>.<br />
+            Ceci est une implémentation low-high-tech. Sauvegardez simplement cette page web pour l'utiliser hors-ligne quand et où vous le voulez.
+        </div>
+
+    </div>
+
+    <div id="elm_main">
+        <div id="elm_habits_configuration">
+            <span>Modifiez la date, titre et habitudes ci-dessous puis générez une nouvelle page.<br />
+                <span class="italic tiny">Acronyme:Description:Jours de la semaine</span>
+            </span>
+
+            <span class="right">
+                <div class="tooltip"><button onclick="bujoToClipboard()"><span class="tooltiptext">Copier dans le presse-papier</span>Presse-papier</button></div>
+                <div class="tooltip"><button onclick="generateBujo()"><span class="tooltiptext">Générer une nouvelle feuille</span>Générer</button></div>
+                <div class="tooltip"><input id="elm_separate_weeks" type="checkbox"><span class="tooltiptext">Séparer les semaines</span></input></div>
+            </span>
+            <p class="clear" />
+        </div>
+
+
+        <div id="elm_bujo" contenteditable="true"></div>
+    </div>
+
+</body>
+</html>
