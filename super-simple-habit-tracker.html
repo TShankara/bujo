@@ -14,7 +14,7 @@
 <!--
     This is here to change default values.
 -->
-    <script type="text/javascript">
+    <script type="text/javascript" crossorigin="anonymous">
         var default_title = "Habitudes conditionnement physique";
         var default_habits = `
 CaP:Course à pied:135
@@ -191,7 +191,7 @@ Pra:Pranayama:123456
 
     </style>
 
-    <script type="application/javascript">
+    <script type="application/javascript" crossorigin="anonymous">
 
         function getHabits(content)
         {
@@ -333,6 +333,30 @@ Pra:Pranayama:123456
             copyToClipboard(elm_bujo.innerHTML);
             
         }
+
+        window.onload = function()
+        {
+            /* Prevent formatted copy/paste */
+            let elm_bujo = document.getElementById("elm_bujo");
+            elm_bujo.addEventListener("paste", function(e) {
+                e.preventDefault();
+                var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                document.execCommand("insertHTML", false, text);
+            });  
+
+            /* Fill default values */
+            let output = "";
+            output += new Date().getFullYear();
+            output += " ";
+            let month = (Number(new Date().getMonth())+1).toString();
+            month = (month > 9) ? month : "0" + month;
+            output += month;
+            output += ": ";
+            output += default_title;
+            output += "\n";
+            output += default_habits;
+            elm_bujo.innerHTML = output;
+        }
     </script>
     
 </head>
@@ -363,29 +387,6 @@ Pra:Pranayama:123456
 
         <div id="elm_bujo" contenteditable="true"></div>
     </div>
-
-    <script type="text/javascript">
-        /* Prevent formatted copy/paste */
-        let elm_bujo = document.getElementById("elm_bujo");
-        elm_bujo.addEventListener("paste", function(e) {
-            e.preventDefault();
-            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
-            document.execCommand("insertHTML", false, text);
-        });  
-
-        /* Fill default values */
-        let output = "";
-        output += new Date().getFullYear();
-        output += " ";
-        let month = (Number(new Date().getMonth())+1).toString();
-        month = (month > 9) ? month : "0" + month;
-        output += month;
-        output += ": ";
-        output += default_title;
-        output += "\n";
-        output += default_habits;
-        elm_bujo.innerHTML = output;
-    </script>
 
 </body>
 </html>
