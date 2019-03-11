@@ -24,6 +24,7 @@ Pra:Pranayama:123456
 `;
         var str_comment = "Commentaire";
         var todo_character = ".";
+        var link_character = "|";
         var days = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
         var str_cant_parse_date_and_title = "Impossible de détecter la date et le titre."
     </script>
@@ -228,7 +229,7 @@ Pra:Pranayama:123456
                 }
                 else
                 {
-                    output += "   ";
+                    output += " " + link_character + " ";
                 }
                 output += " ";
             }
